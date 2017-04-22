@@ -8,6 +8,7 @@ Code adapted from: https://pypi.python.org/pypi/pyrtlsdr
 """
 
 from pylab import psd, xlabel, ylabel, show
+import scipy.signal as sig
 from rtlsdr import RtlSdr
 
 class Scanner(object):
@@ -31,3 +32,15 @@ class Scanner(object):
         ylabel('Relative power (dB)')
 
         show()
+        
+    def calc_psd(self,fc,samp_scale):
+        self.sdr.center_freq = fc
+
+        smpls = self.sdr.read_samples(samp_scale*1024)
+
+        # use matplotlib to estimate and plot the PSD
+        f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
+                              return_onesided = False)
+        
+        return f,pow_sd
+        
