@@ -20,9 +20,12 @@ samp_scale = 128
 
 scn.plot_psd(center_freq,samp_scale)
 
-f, pow_sd = scn.calc_psd(center_freq,samp_scale)
+f, pow_db = scn.calc_psd(center_freq,samp_scale)
 
-plt.plot(f,np.sqrt(pow_sd))
+print(np.max(pow_db))
+
+plt.plot(f,pow_db - np.min(pow_db))
 plt.xlabel('frequency [Hz]')
-plt.ylabel('PSD [V RMS]')
+plt.ylabel('PSD [dB]')
+plt.grid(True)
 plt.show()

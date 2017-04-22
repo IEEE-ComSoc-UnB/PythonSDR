@@ -10,6 +10,7 @@ Code adapted from: https://pypi.python.org/pypi/pyrtlsdr
 from pylab import psd, xlabel, ylabel, show
 import scipy.signal as sig
 from rtlsdr import RtlSdr
+import numpy as np
 
 class Scanner(object):
     
@@ -40,7 +41,7 @@ class Scanner(object):
 
         # use matplotlib to estimate and plot the PSD
         f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
-                              return_onesided = False)
+                              nperseg = 1024,return_onesided = False)
         
-        return f,pow_sd
+        return f,10*np.log10(pow_sd)
         
