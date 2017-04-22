@@ -11,6 +11,7 @@ from pylab import psd, xlabel, ylabel, show
 import scipy.signal as sig
 from rtlsdr import RtlSdr
 import numpy as np
+import asyncio as asy
 
 class Scanner(object):
     
@@ -44,4 +45,23 @@ class Scanner(object):
                               nperseg = 1024,return_onesided = False)
         
         return f,10*np.log10(pow_sd)
+    
+    
+    async def monitor_psd(self,fc,samp_scale,count_max):
+        self.sdr.center_freq = fc
+        count = 0
         
+        async for smpls in self.sdr.stream():
+            count = count + 1
+            f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
+                              nperseg = 1024,return_onesided = False)
+            print(np.max(10*np.log10(pow_sd)))
+            
+            if count > count_max:
+                self.sdr.stop()
+                
+        self.sdr.close()
+        
+    def start_monitor(self,fc,samp_scale,count_max=10):
+        asy.get_event_loop().run_until_complete(self.monitor_psd(fc,\
+                          samp_scale,count_max))
