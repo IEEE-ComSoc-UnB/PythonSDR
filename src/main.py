@@ -2,26 +2,17 @@
 """
 Created on Sat Apr 22 10:41:22 2017
 
-Code adapted from: https://pypi.python.org/pypi/pyrtlsdr
-
 @author: Calil
 """
 
-from pylab import psd, xlabel, ylabel, show
-from rtlsdr import RtlSdr
+from scanner import Scanner
 
-sdr = RtlSdr()
+sample_rate = 2.048e6
+gain = 4
 
-# configure device
-sdr.sample_rate = 2.4e6
-sdr.center_freq = 96.1e6
-sdr.gain = 4
+scn = Scanner(sample_rate,gain)
 
-samples = sdr.read_samples(256*1024)
+center_freq = 96.2e6
+samp_scale = 64
 
-# use matplotlib to estimate and plot the PSD
-psd(samples, NFFT=1024, Fs=sdr.sample_rate/1e6, Fc=sdr.center_freq/1e6)
-xlabel('Frequency (MHz)')
-ylabel('Relative power (dB)')
-
-show()
+scn.plot_psd(center_freq,samp_scale)
