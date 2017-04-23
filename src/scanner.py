@@ -44,10 +44,15 @@ class Scanner(object):
         f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
                               nperseg = 1024,return_onesided = False)
         
-        return f,10*np.log10(pow_sd)
+        f = f + fc
+        
+        pow_db = 10*np.log10(pow_sd)
+        pow_db = pow_db - np.min(pow_db)
+        
+        return f, pow_db
     
     
-    async def monitor_psd(self,fc,samp_scale,count_max):
+    async def monitor_psd(self,fc,samp_scale,count_max,monit):
         self.sdr.center_freq = fc
         count = 0
         
@@ -55,13 +60,20 @@ class Scanner(object):
             count = count + 1
             f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
                               nperseg = 1024,return_onesided = False)
-            print(np.max(10*np.log10(pow_sd)))
             
+            pow_db = 10*np.log10(pow_sd)
+            pow_db = pow_db - np.min(pow_db)
+            
+            if monit == "MAX":
+                print(np.max(pow_db))
+            elif monit == "MEAN":
+                print(np.mean(pow_db))
+                
             if count > count_max:
                 self.sdr.stop()
                 
         self.sdr.close()
         
-    def start_monitor(self,fc,samp_scale,count_max=10):
+    def start_monitor(self,fc,samp_scale,count_max=10,monit = "MAX"):
         asy.get_event_loop().run_until_complete(self.monitor_psd(fc,\
-                          samp_scale,count_max))
+                          samp_scale,count_max,monit))
