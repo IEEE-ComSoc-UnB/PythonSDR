@@ -19,7 +19,7 @@ gain = 49.6
 scn = Scanner(sample_rate,gain)
 
 center_freq = 312e6
-thresh = 5.2
+thresh = 5.3
 
 scn.start_monitor_psd_until(center_freq,thresh,monit="MEAN")
 

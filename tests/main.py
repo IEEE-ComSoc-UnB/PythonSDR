@@ -28,5 +28,6 @@ plt.show()
 
 thresh = 5.4
 
-scn.start_monitor_psd(center_freq,thresh,monit="MEAN")
+#scn.start_monitor_psd(center_freq,count_max=200,monit="MEAN")
+scn.start_monitor_psd_until(center_freq,thresh,count_max=200,monit="MEAN")
 print("END")
