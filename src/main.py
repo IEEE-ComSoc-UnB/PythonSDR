@@ -5,10 +5,13 @@ Created on Sat Apr 22 10:41:22 2017
 @author: Calil
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
+from pygame import mixer
+from time import sleep
 
 from scanner import Scanner
+
+mixer.init()
+mixer.music.load('C:/Users/Calil/Documents/RPi & SDR/SDR/PythonSDR/audio/car_alarm_short.mp3')
 
 sample_rate = 2.048e6
 gain = 49.6
@@ -16,19 +19,11 @@ gain = 49.6
 scn = Scanner(sample_rate,gain)
 
 center_freq = 312e6
-smp_scale = 256
+thresh = 5.2
 
-scn.plot_psd(center_freq,smp_scale)
+scn.start_monitor_psd_until(center_freq,thresh,monit="MEAN")
 
-f, pow_db = scn.calc_psd(center_freq,smp_scale)
+mixer.music.play()
+sleep(1)
 
-print(np.max(pow_db))
-
-plt.plot(f,pow_db)
-plt.xlabel('Frequency [Hz]')
-plt.ylabel('PSD [dB]')
-plt.grid(True)
-plt.show()
-
-scn.start_monitor(center_freq,smp_scale,50,"MEAN")
 print("END")

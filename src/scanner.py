@@ -22,8 +22,9 @@ class Scanner(object):
         self.sdr.sample_rate = sample_rate
         self.sdr.gain = gain
     
-    def plot_psd(self,fc,samp_scale):
-        self.sdr.center_freq = fc
+    def plot_psd(self,fc,samp_scale=256):
+        if self.sdr.center_freq != fc:
+            self.sdr.center_freq = fc
 
         samples = self.sdr.read_samples(samp_scale*1024)
 
@@ -35,8 +36,9 @@ class Scanner(object):
 
         show()
         
-    def calc_psd(self,fc,samp_scale):
-        self.sdr.center_freq = fc
+    def calc_psd(self,fc,samp_scale=256):
+        if self.sdr.center_freq != fc:
+            self.sdr.center_freq = fc
 
         smpls = self.sdr.read_samples(samp_scale*1024)
 
@@ -53,7 +55,8 @@ class Scanner(object):
     
     
     async def monitor_psd(self,fc,samp_scale,count_max,monit):
-        self.sdr.center_freq = fc
+        if self.sdr.center_freq != fc:
+            self.sdr.center_freq = fc
         count = 0
         
         async for smpls in self.sdr.stream():
@@ -74,6 +77,34 @@ class Scanner(object):
                 
         self.sdr.close()
         
-    def start_monitor(self,fc,samp_scale,count_max=10,monit = "MAX"):
+    async def monitor_psd_until(self,fc,thresh,samp_scale,count_max,monit):
+        if self.sdr.center_freq != fc:
+            self.sdr.center_freq = fc
+        
+        async for smpls in self.sdr.stream():
+            f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
+                              nperseg = 1024,return_onesided = False)
+            
+            pow_db = 10*np.log10(pow_sd)
+            pow_db = pow_db - np.min(pow_db)
+            
+            if monit == "MAX":
+                val = np.max(pow_db)
+            elif monit == "MEAN":
+                val = np.mean(pow_db)
+                
+            print(val)
+                
+            if val > thresh:
+                self.sdr.stop()
+                
+        self.sdr.close()
+        print("Threshold reached!")
+        
+    def start_monitor_psd(self,fc,samp_scale = 256,count_max=10,monit = "MAX"):
         asy.get_event_loop().run_until_complete(self.monitor_psd(fc,\
                           samp_scale,count_max,monit))
+        
+    def start_monitor_psd_until(self,fc,thresh,samp_scale = 256,count_max=10,monit = "MAX"):
+        asy.get_event_loop().run_until_complete(self.monitor_psd_until(fc,\
+                          thresh,samp_scale,count_max,monit))
