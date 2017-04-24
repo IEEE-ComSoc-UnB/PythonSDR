@@ -77,7 +77,7 @@ class Scanner(object):
                 
         self.sdr.close()
         
-    async def monitor_psd_until(self,fc,thresh,samp_scale,count_max,monit):
+    async def monitor_psd_until(self,fc,thresh,samp_scale,monit):
         if self.sdr.center_freq != fc:
             self.sdr.center_freq = fc
         
@@ -105,6 +105,6 @@ class Scanner(object):
         asy.get_event_loop().run_until_complete(self.monitor_psd(fc,\
                           samp_scale,count_max,monit))
         
-    def start_monitor_psd_until(self,fc,thresh,samp_scale = 256,count_max=10,monit = "MAX"):
+    def start_monitor_psd_until(self,fc,thresh,samp_scale = 256,monit = "MAX"):
         asy.get_event_loop().run_until_complete(self.monitor_psd_until(fc,\
-                          thresh,samp_scale,count_max,monit))
+                          thresh,samp_scale,monit))

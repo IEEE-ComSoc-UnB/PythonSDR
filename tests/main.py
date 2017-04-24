@@ -14,7 +14,7 @@ gain = 49.6
 
 scn = Scanner(sample_rate,gain)
 
-center_freq = 312e6
+center_freq = 433.9e6
 
 scn.plot_psd(center_freq)
 
@@ -26,8 +26,8 @@ plt.ylabel('PSD [dB]')
 plt.grid(True)
 plt.show()
 
-thresh = 5.4
+thresh = 7
 
 #scn.start_monitor_psd(center_freq,count_max=200,monit="MEAN")
-scn.start_monitor_psd_until(center_freq,thresh,count_max=200,monit="MEAN")
+scn.start_monitor_psd_until(center_freq,thresh,monit="MEAN")
 print("END")
