@@ -22,7 +22,6 @@ scn = Scanner(sample_rate,gain)
 
 # Scanner parameters
 center_freq = 433.9e6
-#center_freq = 96.1e6
 thresh = 10
 
 # Start monitoring
