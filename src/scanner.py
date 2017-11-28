@@ -23,9 +23,11 @@ class Scanner(object):
         self.sdr.gain = gain
     
     def plot_psd(self,fc,samp_scale=256):
+        # Update center frequency
         if self.sdr.center_freq != fc:
             self.sdr.center_freq = fc
 
+        # Read samples
         samples = self.sdr.read_samples(samp_scale*1024)
 
         # use matplotlib to estimate and plot the PSD
@@ -36,13 +38,15 @@ class Scanner(object):
 
         show()
         
+        # 
+        
     def calc_psd(self,fc,samp_scale=256):
         if self.sdr.center_freq != fc:
             self.sdr.center_freq = fc
 
         smpls = self.sdr.read_samples(samp_scale*1024)
 
-        # use matplotlib to estimate and plot the PSD
+        # use matplotlib to estimate the PSD
         f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
                               nperseg = 1024,return_onesided = False)
         
@@ -54,57 +58,45 @@ class Scanner(object):
         return f, pow_db
     
     
-    async def monitor_psd(self,fc,samp_scale,count_max,monit):
+    async def monitor_energy(self,fc,samp_scale,count_max):
         if self.sdr.center_freq != fc:
             self.sdr.center_freq = fc
         count = 0
         
-        async for smpls in self.sdr.stream():
+        async for smpls in self.sdr.stream(num_samples_or_bytes=1024):
             count = count + 1
-            f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
-                              nperseg = 1024,return_onesided = False)
+            pow_sd = np.sum(np.absolute(smpls)**2)
             
             pow_db = 10*np.log10(pow_sd)
-            pow_db = pow_db - np.min(pow_db)
             
-            if monit == "MAX":
-                print(np.max(pow_db))
-            elif monit == "MEAN":
-                print(np.mean(pow_db))
+            print(pow_db)
                 
             if count > count_max:
                 self.sdr.stop()
                 
         self.sdr.close()
         
-    async def monitor_psd_until(self,fc,thresh,samp_scale,monit):
+    async def monitor_energy_until(self,fc,thresh,samp_scale):
         if self.sdr.center_freq != fc:
             self.sdr.center_freq = fc
         
-        async for smpls in self.sdr.stream():
-            f, pow_sd = sig.welch(smpls,fs=self.sdr.sample_rate,nfft=1024,\
-                              nperseg = 1024,return_onesided = False)
+        async for smpls in self.sdr.stream(num_samples_or_bytes=1024):
+            pow_sd = np.sum(np.absolute(smpls)**2)
             
             pow_db = 10*np.log10(pow_sd)
-            pow_db = pow_db - np.min(pow_db)
             
-            if monit == "MAX":
-                val = np.max(pow_db)
-            elif monit == "MEAN":
-                val = np.mean(pow_db)
+            print(pow_db)
                 
-            print(val)
-                
-            if val > thresh:
+            if pow_db > thresh:
                 self.sdr.stop()
                 
         self.sdr.close()
         print("Threshold reached!")
         
-    def start_monitor_psd(self,fc,samp_scale = 256,count_max=10,monit = "MAX"):
-        asy.get_event_loop().run_until_complete(self.monitor_psd(fc,\
-                          samp_scale,count_max,monit))
+    def start_monitor_energy(self,fc,samp_scale = 256,count_max=50):
+        asy.get_event_loop().run_until_complete(self.monitor_energy(fc,\
+                          samp_scale,count_max))
         
-    def start_monitor_psd_until(self,fc,thresh,samp_scale = 256,monit = "MAX"):
-        asy.get_event_loop().run_until_complete(self.monitor_psd_until(fc,\
-                          thresh,samp_scale,monit))
+    def start_monitor_energy_until(self,fc,thresh,samp_scale = 256):
+        asy.get_event_loop().run_until_complete(self.monitor_energy_until(fc,\
+                          thresh,samp_scale))

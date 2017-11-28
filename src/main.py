@@ -10,18 +10,23 @@ from time import sleep
 
 from scanner import Scanner
 
+# Itialize music mixer
 mixer.init()
-mixer.music.load('C:/Users/Calil/Documents/RPi & SDR/SDR/PythonSDR/audio/car_alarm_short.mp3')
+mixer.music.load('../audio/car_alarm_short.mp3')
 
+# RTL Parameters
 sample_rate = 2.048e6
 gain = 49.6
 
 scn = Scanner(sample_rate,gain)
 
+# Scanner parameters
 center_freq = 433.9e6
-thresh = 6
+#center_freq = 96.1e6
+thresh = 10
 
-scn.start_monitor_psd_until(center_freq,thresh,monit="MEAN")
+# Start monitoring
+scn.start_monitor_energy_until(center_freq,thresh)
 
 mixer.music.play()
 sleep(1)
